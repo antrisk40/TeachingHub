@@ -15,6 +15,8 @@ import Feedback from "./models/feedback.models.js";
 import Quiz from "./models/quizzes.models.js";
 import Video from "./models/videos.models.js"
 import Course from "./models/courses.models.js";
+import errorMiddleware from "./middleware/error.middlewre.js";
+
 
 const app = express();
 app.use(express.json());
@@ -23,6 +25,7 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("Welcome to the Teaching Hub!");
 });
+
 
 mongoose
   .connect("mongodb://localhost:27017/TeachingHub", {
@@ -54,12 +57,30 @@ mongoose
       console.log(`Collection created for ${model.modelName}`);
     }
 
-    // Mount student routes
-    app.use("/students", studentRoutes);
-
-    // Start the server
-    app.listen(3000, () => {
+     // Start the server
+     app.listen(process.env.PORT, () => {
       console.log("Server started on port 3000");
     });
   })
   .catch((err) => console.error("Error connecting to MongoDB:", err));
+
+
+    // Mount student routes
+    app.use("/api/v1/student", studentRoutes);
+    app.use((req, res, next) => {
+      res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+      res.header('Access-Control-Allow-Headers', 'Content-Type');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      next();
+    });
+    
+    app.all("*",(req,res,next)=>{
+      res.status(404)
+      res.send("OOPS! page not found")   
+    });
+    
+
+    app.use(errorMiddleware)
+
+   
